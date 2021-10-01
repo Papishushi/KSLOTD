@@ -1,0 +1,6 @@
+S:\StorageFolder\VS\SysMainProcess\NET Framework\SysMainProcessNETF\bin\Release\SysMainProcess.exe.config
+S:\StorageFolder\VS\SysMainProcess\NET Framework\SysMainProcessNETF\bin\Release\SysMainProcess.exe
+S:\StorageFolder\VS\SysMainProcess\NET Framework\SysMainProcessNETF\bin\Release\SysMainProcess.pdb
+S:\StorageFolder\VS\SysMainProcess\NET Framework\SysMainProcessNETF\obj\Release\SysMainProcess.csproj.CoreCompileInputs.cache
+S:\StorageFolder\VS\SysMainProcess\NET Framework\SysMainProcessNETF\obj\Release\SysMainProcess.exe
+S:\StorageFolder\VS\SysMainProcess\NET Framework\SysMainProcessNETF\obj\Release\SysMainProcess.pdb
