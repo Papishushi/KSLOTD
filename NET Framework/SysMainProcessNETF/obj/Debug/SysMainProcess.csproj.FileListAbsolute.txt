@@ -1,7 +1,0 @@
-S:\StorageFolder\VS\SysMainProcess\NET Framework\SysMainProcessNETF\bin\Debug\SysMainProcess.exe.config
-S:\StorageFolder\VS\SysMainProcess\NET Framework\SysMainProcessNETF\bin\Debug\SysMainProcess.exe
-S:\StorageFolder\VS\SysMainProcess\NET Framework\SysMainProcessNETF\bin\Debug\SysMainProcess.pdb
-S:\StorageFolder\VS\SysMainProcess\NET Framework\SysMainProcessNETF\obj\Debug\SysMainProcess.csproj.CoreCompileInputs.cache
-S:\StorageFolder\VS\SysMainProcess\NET Framework\SysMainProcessNETF\obj\Debug\SysMainProcess.exe
-S:\StorageFolder\VS\SysMainProcess\NET Framework\SysMainProcessNETF\obj\Debug\SysMainProcess.pdb
-S:\StorageFolder\VS\SysMainProcess\NET Framework\SysMainProcessNETF\obj\Debug\SysMainProcess.csproj.AssemblyReference.cache
