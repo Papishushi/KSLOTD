@@ -40,6 +40,6 @@ Congratulations now you own your own copy of this malware!
 
 If you decide to modidy, distribute, fork or use commercially this malware you must declare the source code publicly, and license it under the [GNU General Public License v3.0](https://github.com/Papishushi/KSLOTD/blob/main/LICENSE).  
 
-If you use this tool for nefarius use as I said "I dont accept any responsibility or liability for the use of this licensed work."
+If you use this tool for nefarius purpose as I said "_I dont accept any responsibility or liability for the use of this licensed work._"
 
 Cheers
