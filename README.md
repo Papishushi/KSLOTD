@@ -10,7 +10,7 @@ Open Source Key stroke logger for Windows Devices. See license for more details.
 
 * Only displayed on Task Manager
 
-To use this malware modify `SysMainProcess.Constants.cs` with the required parameters:
+To use this malware modify _SysMainProcess.Constants.cs_ with the required parameters:
 
 `private const ushort SMTP_PORT = Your SMTP port;`  
 `private const uint PODCAST_INTERVAL = Interval time in miliseconds at which a podcast is broadcasted;`  
