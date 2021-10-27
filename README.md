@@ -1,6 +1,10 @@
 # KSLOTD
 Open Source Key stroke logger for Windows Devices. See license for more details.
 
+This piece of .NET software is designed with educative intentions on the field of malware coding mechanisms.This is usefull to the community by, for example: creating algorithims capable of picking this patterns and block the malware before an attack is fullfilled. 
+
+I dont accept any responsibility or liability for the use of this licensed work.
+
 ## v1.0 Features:
 * Keylogger
 
